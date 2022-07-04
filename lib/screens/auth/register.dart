@@ -1,4 +1,5 @@
 import 'package:card_swiper/card_swiper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/gestures.dart';
@@ -63,6 +64,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         await authInstance.createUserWithEmailAndPassword(
             email: emailTextController.text.toLowerCase().trim(),
             password: passTextController.text.trim());
+        final User? user = authInstance.currentUser;
+        final _uid = user!.uid;
+        await FirebaseFirestore.instance.collection('users').doc(_uid).set({
+          'id': _uid,
+          'username': fullNameController.text,
+          'email': emailTextController.text.toLowerCase(),
+          'address': addressTextController.text,
+          'userFavor': [],
+          'userCart': [],
+          'createdAt': Timestamp.now(),
+        });
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => BottomBarScreen()));
       } on FirebaseException catch (error) {

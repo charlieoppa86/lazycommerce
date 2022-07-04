@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:lazyclub/provider/dark_theme_provider.dart';
 import 'package:lazyclub/screens/auth/firebase_consts.dart';
 import 'package:lazyclub/screens/auth/forget_password.dart';
 import 'package:lazyclub/screens/auth/login.dart';
+import 'package:lazyclub/screens/loading_manager.dart';
 import 'package:lazyclub/screens/orders/orders_screen.dart';
 import 'package:lazyclub/screens/viewed_recently/viewed_recently.dart';
 import 'package:lazyclub/screens/wishlist/wishlist_screen.dart';
@@ -44,7 +46,26 @@ class _UserScreenState extends State<UserScreen> {
               maxLines: 2,
               decoration: InputDecoration(hintText: '다른 주소를 입력하세요'),
             ),
-            actions: [TextButton(onPressed: () {}, child: Text('업데이트'))],
+            actions: [
+              TextButton(
+                  onPressed: () async {
+                    String _uid = user!.uid;
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(_uid)
+                          .update({'address': _addressTextController.text});
+                      Navigator.pop(context);
+                      setState(() {
+                        address = _addressTextController.text;
+                      });
+                    } catch (error) {
+                      GlobalMethods.errorDialog(
+                          content: error.toString(), context: context);
+                    }
+                  },
+                  child: Text('업데이트'))
+            ],
           );
         });
   }
@@ -75,7 +96,52 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
+  String? _email;
+  String? _username;
+  String? address;
+
+  bool _isLoading = false;
   final User? user = authInstance.currentUser;
+
+  @override
+  void initState() {
+    getUserData();
+    super.initState();
+  }
+
+  Future<void> getUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    if (user == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+    try {
+      String _uid = user!.uid;
+      final DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(_uid).get();
+      if (userDoc == null) {
+        return;
+      } else {
+        _email = userDoc.get('email');
+        _username = userDoc.get('username');
+        address = userDoc.get('address');
+        _addressTextController.text = userDoc.get('address');
+      }
+    } catch (error) {
+      setState(() {
+        _isLoading = false;
+      });
+      GlobalMethods.errorDialog(content: '$error', context: context);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +160,7 @@ class _UserScreenState extends State<UserScreen> {
                 text: TextSpan(
                     children: <TextSpan>[
                   TextSpan(
-                      text: '내 이름',
+                      text: _username == null ? 'user' : _username,
                       style: TextStyle(
                           color: Colors.blueAccent,
                           fontSize: 24,
@@ -110,7 +176,9 @@ class _UserScreenState extends State<UserScreen> {
                         fontSize: 24,
                         fontWeight: FontWeight.bold))),
             TextWidget(
-                text: 'charlieoppa86@gmail.com', color: color, textSize: 14),
+                text: _email == null ? 'email' : _email!,
+                color: color,
+                textSize: 14),
             SizedBox(
               height: 20,
             ),
@@ -120,7 +188,7 @@ class _UserScreenState extends State<UserScreen> {
             ),
             _listTiles(
                 title: 'Address',
-                subtitle: 'Address...',
+                subtitle: address,
                 icon: IconlyLight.profile,
                 onPressed: () async {
                   await _showAddressDialog();
