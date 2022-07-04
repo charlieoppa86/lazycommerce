@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:lazyclub/screens/auth/firebase_consts.dart';
+import 'package:lazyclub/screens/auth/forget_password.dart';
 import 'package:lazyclub/screens/auth/register.dart';
 import 'package:lazyclub/screens/bottom_bar.dart';
 import 'package:lazyclub/screens/loading_manager.dart';
@@ -198,7 +199,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.topRight,
                       child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ForgetPasswordScreen()));
+                          },
                           child: Text(
                             '비밀번호를 잊으셨어요?',
                             style:

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:lazyclub/provider/dark_theme_provider.dart';
 import 'package:lazyclub/screens/auth/firebase_consts.dart';
+import 'package:lazyclub/screens/auth/forget_password.dart';
 import 'package:lazyclub/screens/auth/login.dart';
 import 'package:lazyclub/screens/orders/orders_screen.dart';
 import 'package:lazyclub/screens/viewed_recently/viewed_recently.dart';
@@ -152,7 +153,10 @@ class _UserScreenState extends State<UserScreen> {
             _listTiles(
                 title: 'Forget Password',
                 icon: IconlyLight.unlock,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ForgetPasswordScreen()));
+                },
                 color: color),
             SwitchListTile(
                 title: TextWidget(
